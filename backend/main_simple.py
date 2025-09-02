@@ -239,6 +239,49 @@ def get_summary(
         categories_spending=categories_spending
     )
 
+# User endpoints (for frontend compatibility)
+@app.get("/api/users")
+def get_users(db: Session = Depends(get_db)):
+    # Return a default user for simplicity
+    return [{"id": 1, "name": "Default User", "color": "#00ff00", "created_at": "2025-01-01T00:00:00"}]
+
+# Expense endpoints (aliases for transactions)
+@app.get("/api/expenses")
+def get_expenses(
+    skip: int = 0,
+    limit: int = 100,
+    user_id: Optional[int] = None,
+    category_id: Optional[int] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    db: Session = Depends(get_db)
+):
+    return get_transactions(skip, limit, category_id, start_date, end_date, db)
+
+@app.post("/api/expenses")
+def create_expense(transaction: TransactionCreate, db: Session = Depends(get_db)):
+    return create_transaction(transaction, db)
+
+@app.get("/api/expenses/{expense_id}")
+def get_expense(expense_id: int, db: Session = Depends(get_db)):
+    return get_transaction(expense_id, db)
+
+@app.put("/api/expenses/{expense_id}")
+def update_expense(expense_id: int, transaction: TransactionCreate, db: Session = Depends(get_db)):
+    return update_transaction(expense_id, transaction, db)
+
+@app.delete("/api/expenses/{expense_id}")
+def delete_expense(expense_id: int, db: Session = Depends(get_db)):
+    return delete_transaction(expense_id, db)
+
+# Summary endpoints
+@app.get("/api/summary/current-month")
+def get_current_month_summary(db: Session = Depends(get_db)):
+    from datetime import datetime
+    now = datetime.now()
+    start_date = now.replace(day=1).date()
+    return get_summary(start_date=start_date, db=db)
+
 if __name__ == "__main__":
     import uvicorn
     # Use PORT environment variable for Render
