@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { expenseApi, userApi, categoryApi, User, Category, CreateExpenseData } from '../services/api';
-import { format } from 'date-fns';
 
 const AddExpense: React.FC = () => {
   const navigate = useNavigate();

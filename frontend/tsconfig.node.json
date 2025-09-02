@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "composite": true,
-    "tsc": "^5.0.0",
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",

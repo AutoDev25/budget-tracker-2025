@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { summaryApi, expenseApi, MonthlySummary, Expense } from '../services/api';
+import { summaryApi, MonthlySummary } from '../services/api';
 import { format, subMonths } from 'date-fns';
 
 interface MonthlyData {
