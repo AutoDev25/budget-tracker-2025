@@ -1,0 +1,13 @@
+{
+  "name": "budget-2025",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "cd frontend && npm install",
+    "build": "cd frontend && npm ci && npm run build",
+    "start": "cd frontend && npm run preview",
+    "dev": "cd frontend && npm run dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
