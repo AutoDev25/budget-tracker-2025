@@ -1,0 +1,244 @@
+import os
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
+from datetime import datetime, date
+from sqlalchemy import create_engine, Column, Integer, String, Float, Date, DateTime, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session, relationship
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Database configuration
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL is None:
+    # Local development - SQLite
+    DATABASE_URL = "sqlite:///./budget.db"
+    engine = create_engine(
+        DATABASE_URL, 
+        connect_args={"check_same_thread": False}
+    )
+else:
+    # Production - PostgreSQL (Render)
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
+    engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# Database Models
+class Category(Base):
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    type = Column(String)
+    budget_limit = Column(Float, nullable=True)
+    transactions = relationship("Transaction", back_populates="category")
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    description = Column(String)
+    amount = Column(Float)
+    date = Column(Date)
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    type = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    category = relationship("Category", back_populates="transactions")
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+# Pydantic Models
+class CategoryCreate(BaseModel):
+    name: str
+    type: str
+    budget_limit: Optional[float] = None
+
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+    type: str
+    budget_limit: Optional[float]
+    
+    class Config:
+        from_attributes = True
+
+class TransactionCreate(BaseModel):
+    description: str
+    amount: float
+    date: date
+    category_id: int
+    type: str
+
+class TransactionResponse(BaseModel):
+    id: int
+    description: str
+    amount: float
+    date: date
+    category_id: int
+    type: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class BudgetSummary(BaseModel):
+    total_income: float
+    total_expenses: float
+    balance: float
+    categories_spending: dict
+
+# Database dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# FastAPI app
+app = FastAPI(title="Budget Tracker 2025 API", version="1.0.0")
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def read_root():
+    return {"message": "Budget Tracker 2025 API is running!", "version": "1.0.0"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "database": "connected"}
+
+# Category endpoints
+@app.post("/api/categories", response_model=CategoryResponse)
+def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
+    db_category = Category(**category.model_dump())
+    db.add(db_category)
+    db.commit()
+    db.refresh(db_category)
+    return db_category
+
+@app.get("/api/categories", response_model=List[CategoryResponse])
+def get_categories(db: Session = Depends(get_db)):
+    categories = db.query(Category).all()
+    return categories
+
+@app.delete("/api/categories/{category_id}")
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    category = db.query(Category).filter(Category.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    db.delete(category)
+    db.commit()
+    return {"message": "Category deleted successfully"}
+
+# Transaction endpoints
+@app.post("/api/transactions", response_model=TransactionResponse)
+def create_transaction(transaction: TransactionCreate, db: Session = Depends(get_db)):
+    db_transaction = Transaction(**transaction.model_dump())
+    db.add(db_transaction)
+    db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
+
+@app.get("/api/transactions", response_model=List[TransactionResponse])
+def get_transactions(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    category_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Transaction)
+    
+    if start_date:
+        query = query.filter(Transaction.date >= start_date)
+    if end_date:
+        query = query.filter(Transaction.date <= end_date)
+    if category_id:
+        query = query.filter(Transaction.category_id == category_id)
+    
+    transactions = query.order_by(Transaction.date.desc()).all()
+    return transactions
+
+@app.get("/api/transactions/{transaction_id}", response_model=TransactionResponse)
+def get_transaction(transaction_id: int, db: Session = Depends(get_db)):
+    transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return transaction
+
+@app.put("/api/transactions/{transaction_id}", response_model=TransactionResponse)
+def update_transaction(transaction_id: int, transaction: TransactionCreate, db: Session = Depends(get_db)):
+    db_transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    for key, value in transaction.model_dump().items():
+        setattr(db_transaction, key, value)
+    
+    db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
+
+@app.delete("/api/transactions/{transaction_id}")
+def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
+    transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    db.delete(transaction)
+    db.commit()
+    return {"message": "Transaction deleted successfully"}
+
+# Summary endpoint
+@app.get("/api/summary", response_model=BudgetSummary)
+def get_summary(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Transaction)
+    
+    if start_date:
+        query = query.filter(Transaction.date >= start_date)
+    if end_date:
+        query = query.filter(Transaction.date <= end_date)
+    
+    transactions = query.all()
+    
+    total_income = sum(t.amount for t in transactions if t.type == "income")
+    total_expenses = sum(t.amount for t in transactions if t.type == "expense")
+    
+    categories_spending = {}
+    for transaction in transactions:
+        if transaction.type == "expense" and transaction.category:
+            if transaction.category.name not in categories_spending:
+                categories_spending[transaction.category.name] = 0
+            categories_spending[transaction.category.name] += transaction.amount
+    
+    return BudgetSummary(
+        total_income=total_income,
+        total_expenses=total_expenses,
+        balance=total_income - total_expenses,
+        categories_spending=categories_spending
+    )
+
+if __name__ == "__main__":
+    import uvicorn
+    # Use PORT environment variable for Render
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

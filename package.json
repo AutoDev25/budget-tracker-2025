@@ -1,0 +1,9 @@
+{
+  "name": "budget-2025",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "./scripts/dev.sh",
+    "build-prompt": "./scripts/build-prompt.sh",
+    "install-deps": "cd frontend && npm install && cd ../backend && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+  }
+}

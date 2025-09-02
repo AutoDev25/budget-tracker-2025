@@ -1,0 +1,52 @@
+.card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e1e5e9;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: #d1d5db;
+}
+
+/* Padding variations */
+.card--padding-small {
+  padding: 16px;
+}
+
+.card--padding-medium {
+  padding: 24px;
+}
+
+.card--padding-large {
+  padding: 32px;
+}
+
+/* Shadow variations */
+.card--shadow-none {
+  box-shadow: none;
+}
+
+.card--shadow-small {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card--shadow-medium {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card--shadow-large {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card__title {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.card__content {
+  color: #666;
+  line-height: 1.6;
+}

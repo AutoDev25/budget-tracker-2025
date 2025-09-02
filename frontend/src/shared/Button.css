@@ -1,0 +1,74 @@
+.button {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+/* Variants */
+.button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.button--primary:hover:not(.button--disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.button--secondary {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.button--secondary:hover:not(.button--disabled) {
+  background: #667eea;
+  color: white;
+}
+
+.button--danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.button--danger:hover:not(.button--disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+/* Sizes */
+.button--small {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.button--medium {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+.button--large {
+  padding: 16px 32px;
+  font-size: 18px;
+}
+
+/* States */
+.button--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.button:focus {
+  outline: none;
+  ring: 2px solid #667eea;
+  ring-opacity: 0.5;
+}
