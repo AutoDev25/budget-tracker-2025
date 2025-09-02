@@ -98,6 +98,13 @@ class BudgetSummary(BaseModel):
     balance: float
     categories_spending: dict
 
+class MonthlySummary(BaseModel):
+    year: int
+    month: int
+    total_amount: float
+    expense_count: int
+    daily_average: float
+
 # Database dependency
 def get_db():
     db = SessionLocal()
@@ -281,6 +288,36 @@ def get_current_month_summary(db: Session = Depends(get_db)):
     now = datetime.now()
     start_date = now.replace(day=1).date()
     return get_summary(start_date=start_date, db=db)
+
+@app.get("/api/summary/monthly/{year}/{month}", response_model=MonthlySummary)
+def get_monthly_summary(year: int, month: int, db: Session = Depends(get_db)):
+    from datetime import datetime, date
+    import calendar
+    
+    # Create start and end dates for the month
+    start_date = date(year, month, 1)
+    last_day = calendar.monthrange(year, month)[1]
+    end_date = date(year, month, last_day)
+    
+    # Get transactions for the month
+    query = db.query(Transaction).filter(
+        Transaction.date >= start_date,
+        Transaction.date <= end_date,
+        Transaction.type == "expense"
+    )
+    transactions = query.all()
+    
+    total_amount = sum(t.amount for t in transactions)
+    expense_count = len(transactions)
+    daily_average = total_amount / last_day if total_amount > 0 else 0
+    
+    return MonthlySummary(
+        year=year,
+        month=month,
+        total_amount=total_amount,
+        expense_count=expense_count,
+        daily_average=daily_average
+    )
 
 if __name__ == "__main__":
     import uvicorn
