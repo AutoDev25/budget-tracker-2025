@@ -58,6 +58,34 @@ class Transaction(Base):
 # Create tables
 Base.metadata.create_all(bind=engine)
 
+# Seed default data
+def seed_default_data():
+    db = SessionLocal()
+    try:
+        # Check if categories exist
+        if db.query(Category).count() == 0:
+            default_categories = [
+                {"name": "Food", "type": "expense"},
+                {"name": "Transportation", "type": "expense"},
+                {"name": "Entertainment", "type": "expense"},
+                {"name": "Shopping", "type": "expense"},
+                {"name": "Bills", "type": "expense"},
+                {"name": "Healthcare", "type": "expense"},
+                {"name": "Other", "type": "expense"},
+            ]
+            
+            for cat_data in default_categories:
+                category = Category(**cat_data)
+                db.add(category)
+            
+            db.commit()
+            print("Default categories created")
+    finally:
+        db.close()
+
+# Seed data on startup
+seed_default_data()
+
 # Pydantic Models
 class CategoryCreate(BaseModel):
     name: str
