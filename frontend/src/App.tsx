@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import ExpenseList from './pages/ExpenseList';
@@ -23,6 +23,7 @@ function App() {
           <Route path="/users" element={<Users />} />
           <Route path="/import-export" element={<ImportExport />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="*" element={<Dashboard />} />
         </Routes>
       </Layout>
     </Router>
