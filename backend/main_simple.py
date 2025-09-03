@@ -165,8 +165,24 @@ def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
 
 @app.get("/api/categories", response_model=List[CategoryResponse])
 def get_categories(db: Session = Depends(get_db)):
-    categories = db.query(Category).all()
-    return categories
+    # Try to get categories from database
+    try:
+        categories = db.query(Category).all()
+        if len(categories) > 0:
+            return categories
+    except Exception as e:
+        print(f"Database error: {e}")
+    
+    # Fallback to hardcoded categories if database is empty or fails
+    return [
+        {"id": 1, "name": "Food", "type": "expense", "budget_limit": None},
+        {"id": 2, "name": "Transportation", "type": "expense", "budget_limit": None},
+        {"id": 3, "name": "Entertainment", "type": "expense", "budget_limit": None},
+        {"id": 4, "name": "Shopping", "type": "expense", "budget_limit": None},
+        {"id": 5, "name": "Bills", "type": "expense", "budget_limit": None},
+        {"id": 6, "name": "Healthcare", "type": "expense", "budget_limit": None},
+        {"id": 7, "name": "Other", "type": "expense", "budget_limit": None},
+    ]
 
 @app.delete("/api/categories/{category_id}")
 def delete_category(category_id: int, db: Session = Depends(get_db)):
