@@ -65,13 +65,13 @@ def seed_default_data():
         # Check if categories exist
         if db.query(Category).count() == 0:
             default_categories = [
-                {"name": "Food", "type": "expense"},
-                {"name": "Transportation", "type": "expense"},
-                {"name": "Entertainment", "type": "expense"},
-                {"name": "Shopping", "type": "expense"},
-                {"name": "Bills", "type": "expense"},
-                {"name": "Healthcare", "type": "expense"},
-                {"name": "Other", "type": "expense"},
+                {"name": "Food", "type": "expense", "budget_limit": None},
+                {"name": "Transportation", "type": "expense", "budget_limit": None},
+                {"name": "Entertainment", "type": "expense", "budget_limit": None},
+                {"name": "Shopping", "type": "expense", "budget_limit": None},
+                {"name": "Bills", "type": "expense", "budget_limit": None},
+                {"name": "Healthcare", "type": "expense", "budget_limit": None},
+                {"name": "Other", "type": "expense", "budget_limit": None},
             ]
             
             for cat_data in default_categories:
