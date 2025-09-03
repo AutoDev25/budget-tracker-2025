@@ -135,7 +135,7 @@ const Reports: React.FC = () => {
   };
 
   const getUserComparison = () => {
-    if (!currentSummary || currentSummary.users.length < 2) return null;
+    if (!currentSummary || !currentSummary.users || currentSummary.users.length < 2) return null;
     
     const [user1, user2] = currentSummary.users;
     const difference = Math.abs(user1.total_amount - user2.total_amount);

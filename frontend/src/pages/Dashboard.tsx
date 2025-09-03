@@ -100,7 +100,7 @@ const Dashboard: React.FC = () => {
 
         <div className="dashboard-section user-breakdown">
           <div className="section-title">─ USER BREAKDOWN ──────────────────</div>
-          {summary.users.length === 0 ? (
+          {!summary.users || summary.users.length === 0 ? (
             <div className="empty-state">No expense data</div>
           ) : (
             summary.users.map((user) => (
