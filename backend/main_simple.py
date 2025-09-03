@@ -256,7 +256,20 @@ def get_expenses(
     end_date: Optional[date] = None,
     db: Session = Depends(get_db)
 ):
-    return get_transactions(skip, limit, category_id, start_date, end_date, db)
+    query = db.query(Transaction)
+    
+    if start_date:
+        query = query.filter(Transaction.date >= start_date)
+    if end_date:
+        query = query.filter(Transaction.date <= end_date)
+    if category_id:
+        query = query.filter(Transaction.category_id == category_id)
+    
+    # Apply pagination
+    transactions = query.order_by(Transaction.date.desc()).offset(skip).limit(limit).all()
+    
+    # Convert to expense format (add user and category info if needed)
+    return transactions
 
 @app.post("/api/expenses")
 def create_expense(transaction: TransactionCreate, db: Session = Depends(get_db)):
