@@ -293,7 +293,20 @@ def get_current_month_summary(db: Session = Depends(get_db)):
     from datetime import datetime
     now = datetime.now()
     start_date = now.replace(day=1).date()
-    return get_summary(start_date=start_date, db=db)
+    
+    # Get the basic summary
+    basic_summary = get_summary(start_date=start_date, db=db)
+    
+    # Add the missing fields that frontend expects
+    return {
+        "year": now.year,
+        "month": now.month,
+        "total_amount": basic_summary.total_expenses,
+        "expense_count": 0,  # Would need to count transactions
+        "daily_average": 0,  # Would need to calculate
+        "categories": [],  # Empty for now
+        "users": []  # Empty for now - fixes the undefined error
+    }
 
 if __name__ == "__main__":
     import uvicorn
